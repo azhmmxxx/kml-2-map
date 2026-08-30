@@ -55,12 +55,12 @@
 			'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
 			{ maxZoom: 17, attribution: '&copy; Esri World Topo' }
 		);
-		L.control
-			.layers({ 卫星影像: esri, 街道地图: esriStreet, 地形图: esriTopo }, undefined, {
-				position: 'topright'
-			})
-			.addTo(map);
 		esri.addTo(map);
+		createLayerPicker(map, [
+			{ label: '卫星影像', layer: esri },
+			{ label: '街道地图', layer: esriStreet },
+			{ label: '地形图', layer: esriTopo }
+		]);
 
 		const onResize = () => map?.invalidateSize();
 		window.addEventListener('resize', onResize);
@@ -77,6 +77,76 @@
 	$effect(() => {
 		renderTrack(prepared, waypoints);
 	});
+
+	interface BaseLayer {
+		label: string;
+		layer: L.TileLayer;
+	}
+
+	/**
+	 * 底图选择控件：按钮模式——点击按钮弹出选择面板，
+	 * 选中切换唯一底图；点击地图 / Esc / 再点按钮关闭。
+	 * （自建而非 L.control.layers：需要真 <button> 语义与点击弹出交互）
+	 */
+	function createLayerPicker(map: L.Map, bases: BaseLayer[]) {
+		const picker = new L.Control({ position: 'topright' });
+		picker.onAdd = () => {
+			const root = L.DomUtil.create('div', 'layer-picker');
+			const btn = L.DomUtil.create('button', 'layer-picker-btn', root);
+			btn.type = 'button';
+			btn.textContent = '图层';
+			btn.setAttribute('aria-haspopup', 'true');
+			btn.setAttribute('aria-expanded', 'false');
+
+			const panel = L.DomUtil.create('div', 'layer-picker-panel', root);
+			panel.setAttribute('role', 'group');
+			panel.setAttribute('aria-label', '选择底图');
+
+			let current = bases[0]?.layer ?? null;
+			const close = () => {
+				panel.classList.remove('open');
+				btn.setAttribute('aria-expanded', 'false');
+			};
+			const open = () => {
+				panel.classList.add('open');
+				btn.setAttribute('aria-expanded', 'true');
+			};
+			const select = (layer: L.TileLayer) => {
+				if (layer !== current) {
+					if (current) map.removeLayer(current);
+					current = layer;
+					layer.addTo(map);
+					options.forEach(({ el, l }) => el.classList.toggle('active', l === current));
+				}
+				close();
+			};
+
+			const options: Array<{ el: HTMLButtonElement; l: L.TileLayer }> = [];
+			for (const { label, layer } of bases) {
+				const opt = L.DomUtil.create('button', 'layer-picker-option', panel) as HTMLButtonElement;
+				opt.type = 'button';
+				opt.textContent = label;
+				opt.classList.toggle('active', layer === current);
+				opt.addEventListener('click', () => select(layer));
+				options.push({ el: opt, l: layer });
+			}
+
+			btn.addEventListener('click', () => {
+				if (panel.classList.contains('open')) close();
+				else open();
+			});
+			btn.addEventListener('keydown', (e) => {
+				if (e.key === 'Escape') close();
+			});
+			// 点击面板不穿透到地图；点击地图任意处关闭
+			L.DomEvent.disableClickPropagation(root);
+			L.DomEvent.disableScrollPropagation(root);
+			map.on('click', close);
+
+			return root;
+		};
+		picker.addTo(map);
+	}
 
 	interface Run {
 		bucket: number;
@@ -250,5 +320,68 @@
 		position: absolute;
 		inset: 0;
 		background: #e8e4dc;
+	}
+
+	/* 底图选择控件（Leaflet 运行时生成的 DOM，用 :global 锚定到本组件子树） */
+	.map-root :global(.layer-picker) {
+		position: relative;
+	}
+
+	.map-root :global(.layer-picker-btn) {
+		height: 34px;
+		padding: 0 12px;
+		background: rgba(255, 255, 255, 0.93);
+		backdrop-filter: blur(10px);
+		border: none;
+		border-radius: 10px;
+		box-shadow: 0 4px 24px rgba(30, 25, 20, 0.18);
+		font-size: 13px;
+		color: #26221c;
+		cursor: pointer;
+	}
+
+	.map-root :global(.layer-picker-btn:hover) {
+		background: #fff;
+	}
+
+	.map-root :global(.layer-picker-panel) {
+		display: none;
+		position: absolute;
+		top: 40px;
+		right: 0;
+		min-width: 120px;
+		padding: 6px;
+		background: rgba(255, 255, 255, 0.95);
+		backdrop-filter: blur(10px);
+		border-radius: 12px;
+		box-shadow: 0 4px 24px rgba(30, 25, 20, 0.2);
+	}
+
+	.map-root :global(.layer-picker-panel.open) {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	.map-root :global(.layer-picker-option) {
+		border: none;
+		background: none;
+		text-align: left;
+		padding: 8px 12px;
+		border-radius: 8px;
+		font-size: 13px;
+		color: #26221c;
+		cursor: pointer;
+		white-space: nowrap;
+	}
+
+	.map-root :global(.layer-picker-option:hover) {
+		background: #f3efe6;
+	}
+
+	.map-root :global(.layer-picker-option.active) {
+		background: #fdece4;
+		color: #d9480f;
+		font-weight: 600;
 	}
 </style>
