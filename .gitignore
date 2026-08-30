@@ -1,0 +1,26 @@
+node_modules
+
+# PoC 数据与脚本（含真实 GPS 轨迹，仅本地保留）
+/poc
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*

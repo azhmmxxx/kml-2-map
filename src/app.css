@@ -1,0 +1,74 @@
+/* 全局样式：延续 PoC 的暖色纸感视觉 */
+:root {
+	--bg: #ece8df;
+	--ink: #26221c;
+	--ink-2: #8a8378;
+	--ink-3: #6b655a;
+	--card: rgba(255, 255, 255, 0.93);
+	--accent: #e8590c;
+	--line: #ddd6c9;
+	--shadow: 0 4px 24px rgba(30, 25, 20, 0.18);
+	--radius: 14px;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+html,
+body {
+	height: 100%;
+}
+
+body {
+	font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+	color: var(--ink);
+	background: var(--bg);
+	-webkit-font-smoothing: antialiased;
+}
+
+button {
+	font: inherit;
+	color: inherit;
+}
+
+/* ---- Leaflet 运行时注入的元素（divIcon / tooltip）无法被 scoped 样式命中，需全局 ---- */
+.leaflet-container {
+	font-family: inherit;
+}
+
+.pin {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 26px;
+	height: 26px;
+	border-radius: 50% 50% 50% 0;
+	transform: rotate(-45deg);
+	color: #fff;
+	font-size: 13px;
+	font-weight: 700;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+	border: 2px solid #fff;
+}
+
+.pin span {
+	transform: rotate(45deg);
+}
+
+.wp-label {
+	background: rgba(38, 34, 28, 0.85);
+	color: #fff;
+	font-size: 11px;
+	padding: 3px 8px;
+	border-radius: 6px;
+	white-space: nowrap;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+	border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.leaflet-tooltip.wp-label {
+	padding: 3px 8px;
+}
