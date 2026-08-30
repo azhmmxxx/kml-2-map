@@ -54,18 +54,20 @@
 	.header-card {
 		position: absolute;
 		top: 16px;
-		left: 56px;
+		left: 72px;
 		z-index: 1000;
 		background: rgba(255, 255, 255, 0.93);
 		backdrop-filter: blur(10px);
 		border-radius: 14px;
-		padding: 16px 20px 14px;
+		padding: 11px 22px;
 		box-shadow: 0 4px 24px rgba(30, 25, 20, 0.18);
-		max-width: 420px;
+		/* 定宽而非 max-width：与收起态的剖面面板（同 420px）严格对齐 */
+		width: 420px;
 	}
 
 	h1 {
 		font-size: 21px;
+		line-height: 1;
 		color: #26221c;
 		letter-spacing: 1px;
 		font-weight: 700;
@@ -74,7 +76,7 @@
 	.subtitle {
 		font-size: 12px;
 		color: #8a8378;
-		margin-top: 4px;
+		margin-top: 11px;
 	}
 
 	.stats {
@@ -138,9 +140,9 @@
 
 	@media (max-width: 640px) {
 		.header-card {
-			left: 56px;
+			left: 68px;
 			right: 12px;
-			max-width: none;
+			width: auto;
 		}
 	}
 </style>
