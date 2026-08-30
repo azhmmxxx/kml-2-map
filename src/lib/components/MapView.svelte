@@ -94,9 +94,12 @@
 			const root = L.DomUtil.create('div', 'layer-picker');
 			const btn = L.DomUtil.create('button', 'layer-picker-btn', root);
 			btn.type = 'button';
-			btn.textContent = '图层';
+			btn.title = '选择底图';
+			btn.setAttribute('aria-label', '选择底图');
 			btn.setAttribute('aria-haspopup', 'true');
 			btn.setAttribute('aria-expanded', 'false');
+			btn.innerHTML =
+				'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>';
 
 			const panel = L.DomUtil.create('div', 'layer-picker-panel', root);
 			panel.setAttribute('role', 'group');
@@ -328,14 +331,17 @@
 	}
 
 	.map-root :global(.layer-picker-btn) {
+		width: 34px;
 		height: 34px;
-		padding: 0 12px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0;
 		background: rgba(255, 255, 255, 0.93);
 		backdrop-filter: blur(10px);
 		border: none;
 		border-radius: 10px;
 		box-shadow: 0 4px 24px rgba(30, 25, 20, 0.18);
-		font-size: 13px;
 		color: #26221c;
 		cursor: pointer;
 	}
