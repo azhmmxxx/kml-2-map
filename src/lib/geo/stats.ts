@@ -88,3 +88,90 @@ export function computeStats(segments: TrackSegment[], meta?: TrackMeta): TrackS
 		endTime: meta?.endTime ?? lastT
 	};
 }
+
+/** 单日行程摘要（路线信息卡「详细路线信息」展开项） */
+export interface DaySegment {
+	/** 当天首个 / 末个记录时间（epoch 毫秒） */
+	startMs: number;
+	endMs: number;
+	/** 当天里程（公里，当日首点至末点的累计差） */
+	km: number;
+	/** 当天最高海拔（米），无海拔数据为 null */
+	maxEle: number | null;
+	/** 当天累计爬升 / 下降（米），无海拔数据为 0 */
+	gainM: number;
+	lossM: number;
+}
+
+/** 每日行程分组结果：天条目 + 每个轨迹点的日归属 */
+export interface DailyGroups {
+	days: DaySegment[];
+	/** 与 points 下标对齐的日索引（0 起）；完全无时间数据时全为 -1 */
+	pointDay: Int32Array;
+}
+
+/**
+ * 按本地日历日拆分行程（路线信息卡展开显示 + 按日灰显路线）。
+ * 完全没有时间数据时 days 为空、pointDay 全 -1；日边界以带时间的点起算，
+ * 缺时间的点并入当前日（里程连续累计不受影响），轨迹开头无时间的前缀并入首日。
+ * 爬升/下降与全轨迹统计同口径（平滑 + 阈值，见 gainLoss），按日分段计算。
+ */
+export function groupByDay(
+	points: ReadonlyArray<{ km: number; ele: number; time: number | null }>,
+	hasEle: boolean
+): DailyGroups {
+	const pointDay = new Int32Array(points.length).fill(-1);
+	const first = points.findIndex((p) => p.time != null);
+	if (first < 0) return { days: [], pointDay };
+
+	const days: Array<DaySegment & { key: number; kmStart: number; eles: number[] }> = [];
+	let cur: (typeof days)[number] | null = null;
+	for (let i = 0; i < points.length; i++) {
+		const p = points[i];
+		if (p.time != null) {
+			const d = new Date(p.time);
+			const key = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+			if (!cur || key !== cur.key) {
+				// 首日把轨迹开头的无时间前缀（若有）也并入
+				cur = {
+					key,
+					startMs: p.time,
+					endMs: p.time,
+					kmStart: days.length === 0 ? points[0].km : p.km,
+					km: 0,
+					maxEle: null,
+					gainM: 0,
+					lossM: 0,
+					eles: []
+				};
+				days.push(cur);
+			} else {
+				cur.endMs = p.time;
+			}
+		}
+		if (!cur) continue;
+		pointDay[i] = days.length - 1;
+		cur.km = p.km - cur.kmStart;
+		if (hasEle) {
+			cur.eles.push(p.ele);
+			if (cur.maxEle == null || p.ele > cur.maxEle) cur.maxEle = p.ele;
+		}
+	}
+	// 首个带时间点之前的点并入首日（保证整条线都有着色归属）
+	for (let i = 0; i < first; i++) pointDay[i] = 0;
+
+	return {
+		days: days.map((d) => {
+			const { gain, loss } = gainLoss(d.eles);
+			return {
+				startMs: d.startMs,
+				endMs: d.endMs,
+				km: d.km,
+				maxEle: d.maxEle,
+				gainM: hasEle ? gain : 0,
+				lossM: hasEle ? loss : 0
+			};
+		}),
+		pointDay
+	};
+}

@@ -73,10 +73,10 @@
 	.tool-panel {
 		position: absolute;
 		top: 0;
-		background: rgba(255, 255, 255, 0.95);
+		background: var(--card);
 		backdrop-filter: blur(10px);
 		border-radius: 12px;
-		box-shadow: 0 4px 24px rgba(30, 25, 20, 0.2);
+		box-shadow: var(--shadow);
 		padding: 6px;
 	}
 </style>

@@ -40,3 +40,23 @@ export function fmtNum(n: number, digits = 0): string {
 		maximumFractionDigits: digits
 	});
 }
+
+/** 月日 + 周几："9月6日 周六"（每日行程条目用） */
+export function dayLabel(ms: number): string {
+	const d = new Date(ms);
+	const wk = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][d.getDay()];
+	return `${d.getMonth() + 1}月${d.getDate()}日 ${wk}`;
+}
+
+/** 时:分："08:12" */
+export function timeHM(ms: number): string {
+	const d = new Date(ms);
+	return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/** 时长："9h28m"，不足一小时 "45m" */
+export function durHM(ms: number): string {
+	const m = Math.round(ms / 60000);
+	const h = Math.floor(m / 60);
+	return h > 0 ? `${h}h${pad(m % 60)}m` : `${m}m`;
+}

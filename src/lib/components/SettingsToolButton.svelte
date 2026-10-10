@@ -1,14 +1,39 @@
 <script lang="ts">
-	import { Settings } from '@lucide/svelte';
+	import { Download, Settings } from '@lucide/svelte';
 	import ToolButton from './ToolButton.svelte';
-	import { TRACK_SOLID_COLORS, type TrackStyle } from '$lib/theme';
+	import Segmented from './Segmented.svelte';
+	import type { ExportOptions } from '$lib/exportImage';
+	import { THEME_OPTIONS, TRACK_SOLID_COLORS, type ThemeMode, type TrackStyle } from '$lib/theme';
 
 	interface Props {
 		open: boolean;
 		onopenchange: (open: boolean) => void;
 		trackStyle: TrackStyle;
+		/** 界面风格（明亮 / 暗黑 / 复古 / 青紫 / 跟随系统），页面层持有 */
+		themeMode: ThemeMode;
+		/** 导出选项（bind 双向，页面持有） */
+		exportOptions: ExportOptions;
+		/** 打开导出配置弹窗（配置项已迁移至 ExportModal） */
+		onexport: () => void;
 	}
-	let { open, onopenchange, trackStyle = $bindable() }: Props = $props();
+	let {
+		open,
+		onopenchange,
+		trackStyle = $bindable(),
+		themeMode = $bindable(),
+		exportOptions = $bindable(),
+		onexport
+	}: Props = $props();
+
+	const COLOR_MODES = [
+		{ value: true, label: '海拔着色' },
+		{ value: false, label: '自定义' }
+	] as const;
+
+	const ANIM_MODES = [
+		{ value: 'none', label: '无' },
+		{ value: 'blink', label: '闪烁' }
+	] as const;
 
 	const isPreset = (c: string) => (TRACK_SOLID_COLORS as readonly string[]).includes(c);
 </script>
@@ -34,23 +59,26 @@
 			</div>
 
 			<div class="field">
-				<div class="field-label">颜色</div>
-				<div class="segmented" role="radiogroup" aria-label="轨迹颜色模式">
-					<button
-						class="seg"
-						class:active={trackStyle.elevationColoring}
-						onclick={() => (trackStyle.elevationColoring = true)}
-					>
-						海拔着色
-					</button>
-					<button
-						class="seg"
-						class:active={!trackStyle.elevationColoring}
-						onclick={() => (trackStyle.elevationColoring = false)}
-					>
-						自定义
-					</button>
+				<div class="field-label">
+					不透明度<span class="field-value">{Math.round(trackStyle.opacity * 100)}%</span>
 				</div>
+				<input
+					class="weight-range"
+					type="range"
+					min="0.2"
+					max="1"
+					step="0.05"
+					bind:value={trackStyle.opacity}
+				/>
+			</div>
+
+			<div class="field">
+				<div class="field-label">颜色</div>
+				<Segmented
+					label="轨迹颜色模式"
+					options={COLOR_MODES}
+					bind:value={trackStyle.elevationColoring}
+				/>
 				{#if !trackStyle.elevationColoring}
 					<div class="swatches">
 						{#each TRACK_SOLID_COLORS as c (c)}
@@ -73,6 +101,11 @@
 				{/if}
 			</div>
 
+			<div class="field">
+				<div class="field-label">动画</div>
+				<Segmented label="轨迹动画" options={ANIM_MODES} bind:value={trackStyle.animation} />
+			</div>
+
 			<div class="field field-row">
 				<span class="row-label">是否显示起止点</span>
 				<label class="switch" title="显示 / 隐藏起点与终点标记">
@@ -90,6 +123,36 @@
 			</div>
 		</div>
 
+		<div class="group">
+			<div class="group-title">风格</div>
+			<div class="theme-list" role="radiogroup" aria-label="界面风格">
+				{#each THEME_OPTIONS as opt (opt.mode)}
+					<button
+						type="button"
+						class="theme-option"
+						class:wide={opt.mode === 'auto'}
+						class:active={themeMode === opt.mode}
+						role="radio"
+						aria-checked={themeMode === opt.mode}
+						onclick={() => (themeMode = opt.mode)}
+					>
+						<span class="theme-dot" style:background={opt.dot}></span>
+						{opt.label}
+					</button>
+				{/each}
+			</div>
+		</div>
+
+		<div class="group">
+			<div class="group-title">导出</div>
+
+			<!-- 配置项在 ExportModal 弹窗内选择，此处仅保留入口 -->
+			<button type="button" class="export-btn" onclick={onexport}>
+				<Download size={15} />
+				导出图片
+			</button>
+		</div>
+
 		<div class="more-hint">更多设置开发中</div>
 	</div>
 </ToolButton>
@@ -103,10 +166,14 @@
 		box-sizing: border-box;
 	}
 
+	.group + .group {
+		margin-top: 24px;
+	}
+
 	.group-title {
 		font-size: 14px;
 		font-weight: 600;
-		color: #26221c;
+		color: var(--ink);
 	}
 
 	.field {
@@ -121,20 +188,20 @@
 
 	.row-label {
 		font-size: 12px;
-		color: #6b655a;
+		color: var(--ink-3);
 	}
 
 	.field-label {
 		display: flex;
 		align-items: center;
 		font-size: 12px;
-		color: #6b655a;
+		color: var(--ink-3);
 	}
 
 	.field-value {
 		margin-left: auto;
 		font-variant-numeric: tabular-nums;
-		color: #26221c;
+		color: var(--ink);
 		font-weight: 600;
 	}
 
@@ -142,33 +209,6 @@
 		width: 100%;
 		margin-top: 8px;
 		accent-color: var(--accent);
-	}
-
-	.segmented {
-		display: inline-flex;
-		margin-top: 8px;
-		border: 1px solid #ddd6c9;
-		border-radius: 8px;
-		overflow: hidden;
-	}
-
-	.seg {
-		border: none;
-		background: none;
-		padding: 6px 14px;
-		font-size: 12px;
-		color: #6b655a;
-		cursor: pointer;
-	}
-
-	.seg + .seg {
-		border-left: 1px solid #ddd6c9;
-	}
-
-	.seg.active {
-		background: #fdece4;
-		color: #d9480f;
-		font-weight: 600;
 	}
 
 	.swatches {
@@ -182,8 +222,8 @@
 		width: 24px;
 		height: 24px;
 		border-radius: 50%;
-		border: 2px solid #fff;
-		box-shadow: 0 0 0 1px #c9c2b4;
+		border: 2px solid var(--card-solid);
+		box-shadow: 0 0 0 1px var(--line);
 		cursor: pointer;
 		padding: 0;
 	}
@@ -191,7 +231,7 @@
 	.swatch.active {
 		box-shadow:
 			0 0 0 2px var(--accent),
-			0 0 0 3px #fff;
+			0 0 0 3px var(--card-solid);
 	}
 
 	.swatch-custom {
@@ -206,6 +246,75 @@
 		inset: 0;
 		opacity: 0;
 		cursor: pointer;
+	}
+
+	/* 风格选项：双列网格，跟随系统独占一行 */
+	.theme-list {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 8px;
+		margin-top: 10px;
+	}
+
+	.theme-option {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		border: 1px solid var(--line);
+		border-radius: 8px;
+		background: none;
+		padding: 8px 12px;
+		font-size: 12px;
+		color: var(--ink-3);
+		cursor: pointer;
+	}
+
+	.theme-option.wide {
+		grid-column: 1 / -1;
+	}
+
+	.theme-option:hover {
+		background: var(--hover);
+	}
+
+	.theme-option.active {
+		background: var(--accent-soft);
+		border-color: var(--accent);
+		color: var(--accent-strong);
+		font-weight: 600;
+	}
+
+	.theme-dot {
+		width: 14px;
+		height: 14px;
+		border-radius: 50%;
+		border: 1px solid var(--line);
+		flex: none;
+	}
+
+	.export-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+		width: 100%;
+		margin-top: 16px;
+		padding: 9px 0;
+		border: none;
+		border-radius: 8px;
+		background: var(--accent);
+		color: #fff;
+		font-size: 13px;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.export-btn:hover {
+		filter: brightness(0.94);
+	}
+
+	.export-btn:active {
+		transform: translateY(1px);
 	}
 
 	.switch {
@@ -224,7 +333,7 @@
 	.switch .slider {
 		position: absolute;
 		inset: 0;
-		background: #c9c2b4;
+		background: var(--line);
 		border-radius: 10px;
 		transition: background 0.15s;
 		cursor: pointer;
@@ -237,7 +346,7 @@
 		height: 16px;
 		left: 2px;
 		top: 2px;
-		background: #fff;
+		background: var(--card-solid);
 		border-radius: 50%;
 		box-shadow: 0 1px 3px rgba(30, 25, 20, 0.3);
 		transition: transform 0.15s;
@@ -259,9 +368,9 @@
 	.more-hint {
 		margin-top: 24px;
 		padding-top: 14px;
-		border-top: 1px dashed #ddd6c9;
+		border-top: 1px dashed var(--line);
 		font-size: 12px;
-		color: #9a9384;
+		color: var(--ink-4);
 		text-align: center;
 	}
 </style>

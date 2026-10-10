@@ -38,7 +38,7 @@
 		padding: 8px 12px;
 		border-radius: 8px;
 		font-size: 13px;
-		color: #26221c;
+		color: var(--ink);
 		cursor: pointer;
 		white-space: nowrap;
 		display: block;
@@ -46,12 +46,12 @@
 	}
 
 	.tool-option:hover {
-		background: #f3efe6;
+		background: var(--hover);
 	}
 
 	.tool-option.active {
-		background: #fdece4;
-		color: #d9480f;
+		background: var(--accent-soft);
+		color: var(--accent-strong);
 		font-weight: 600;
 	}
 </style>

@@ -6,6 +6,8 @@ export interface PreparedPoint {
 	lat: number;
 	lng: number;
 	ele: number;
+	/** 记录时间（epoch 毫秒），原样保留可能缺失 */
+	time: number | null;
 	/** 距轨迹起点的累计里程（公里，跨段连续） */
 	km: number;
 }
@@ -25,6 +27,7 @@ export interface PreparedTrack {
  * 把分段轨迹扁平化为渲染友好的结构：
  * - 跨段连续累计 km（剖面图与游标联动的横轴）
  * - 海拔缺失时向前填充（着色与剖面需要连续数值）
+ * - 原样保留记录时间（每日行程分组用，见 stats.dailySegments）
  */
 export function prepareTrack(segments: TrackSegment[]): PreparedTrack {
 	const points: PreparedPoint[] = [];
@@ -48,7 +51,7 @@ export function prepareTrack(segments: TrackSegment[]): PreparedTrack {
 				if (ele < min) min = ele;
 				if (ele > max) max = ele;
 			}
-			points.push({ lat: p.lat, lng: p.lng, ele, km });
+			points.push({ lat: p.lat, lng: p.lng, ele, time: p.time, km });
 		}
 	}
 

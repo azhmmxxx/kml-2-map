@@ -49,6 +49,11 @@
 		return () => ro.disconnect();
 	});
 
+	/** 导出用：暴露图表 SVG 根元素（序列化为图片合成进导出图） */
+	export function getSvg(): SVGSVGElement {
+		return svgEl;
+	}
+
 	$effect(() => {
 		samples = downsample(prepared);
 		build();
@@ -102,7 +107,7 @@
 					x2: W - PAD.r,
 					y1: y,
 					y2: y,
-					stroke: '#e6dfd2',
+					class: 'ep-grid',
 					'stroke-width': 1,
 					'stroke-dasharray': e % 2000 === 0 ? '0' : '3,4'
 				})
@@ -112,7 +117,7 @@
 				y: y + 3.5,
 				'text-anchor': 'end',
 				'font-size': 9.5,
-				fill: '#9a9384'
+				class: 'ep-axis'
 			});
 			txt.textContent = `${e}m`;
 			gGrid.appendChild(txt);
@@ -124,7 +129,7 @@
 				y: H - 6,
 				'text-anchor': 'middle',
 				'font-size': 9.5,
-				fill: '#9a9384'
+				class: 'ep-axis'
 			});
 			txt.textContent = `${km}km`;
 			gGrid.appendChild(txt);
@@ -141,9 +146,7 @@
 				fill: 'url(#eleGrad)'
 			})
 		);
-		svgEl.appendChild(
-			el('path', { d, fill: 'none', stroke: 'rgba(60,55,45,.5)', 'stroke-width': 1 })
-		);
+		svgEl.appendChild(el('path', { d, fill: 'none', class: 'ep-line', 'stroke-width': 1 }));
 
 		// 最高点标记
 		let maxIdx = 0;
@@ -158,7 +161,7 @@
 			y: my - 7,
 			'font-size': 10,
 			'font-weight': 600,
-			fill: '#5f48c2'
+			class: 'ep-max'
 		});
 		mtxt.textContent = `最高 ${Math.round(samples[maxIdx].ele)}m · ${Math.round(samples[maxIdx].km)}km`;
 		svgEl.appendChild(mtxt);
@@ -269,10 +272,10 @@
 		right: 72px;
 		bottom: 30px;
 		z-index: 1000;
-		background: rgba(255, 255, 255, 0.95);
+		background: var(--card);
 		backdrop-filter: blur(10px);
 		border-radius: 14px;
-		box-shadow: 0 4px 24px rgba(30, 25, 20, 0.2);
+		box-shadow: var(--shadow);
 		padding: 8px 16px;
 	}
 
@@ -299,12 +302,12 @@
 	.profile-head .t {
 		font-size: 13px;
 		font-weight: 600;
-		color: #26221c;
+		color: var(--ink);
 	}
 
 	.profile-head .hint {
 		font-size: 11px;
-		color: #9a9384;
+		color: var(--ink-4);
 	}
 
 	.profile-panel.collapsed .hint {
@@ -325,6 +328,23 @@
 		width: 100%;
 		height: 150px;
 		cursor: crosshair;
+	}
+
+	/* 命令式生成的图表元素带类名走全局变量，主题切换时 CSS 直接生效，无需重建图表 */
+	svg :global(.ep-grid) {
+		stroke: var(--chart-grid);
+	}
+
+	svg :global(.ep-axis) {
+		fill: var(--ink-4);
+	}
+
+	svg :global(.ep-line) {
+		stroke: var(--chart-line);
+	}
+
+	svg :global(.ep-max) {
+		fill: var(--chart-max);
 	}
 
 	@media (max-width: 640px) {

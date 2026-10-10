@@ -33,19 +33,19 @@
 		top: 16px;
 		right: 72px;
 		z-index: 1000;
-		background: rgba(255, 255, 255, 0.93);
+		background: var(--card);
 		backdrop-filter: blur(10px);
 		border-radius: 12px;
 		padding: 12px 14px;
-		box-shadow: 0 4px 24px rgba(30, 25, 20, 0.18);
+		box-shadow: var(--shadow);
 		font-size: 11px;
-		color: #6b655a;
+		color: var(--ink-3);
 		width: 210px;
 	}
 
 	.legend-card .t {
 		font-weight: 600;
-		color: #26221c;
+		color: var(--ink);
 		margin-bottom: 7px;
 		font-size: 12px;
 	}
@@ -59,7 +59,7 @@
 		display: flex;
 		justify-content: space-between;
 		margin-top: 4px;
-		color: #8a8378;
+		color: var(--ink-2);
 		font-variant-numeric: tabular-nums;
 	}
 

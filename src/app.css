@@ -1,14 +1,90 @@
-/* 全局样式：延续 PoC 的暖色纸感视觉 */
+/* 全局样式：延续 PoC 的暖色纸感视觉。多套风格共用一套 CSS 变量，
+   页面层在 .map-page 上挂 .theme-xxx 覆盖变量实现风格切换（light 为默认值，不挂类） */
 :root {
 	--bg: #ece8df;
 	--ink: #26221c;
 	--ink-2: #8a8378;
 	--ink-3: #6b655a;
+	--ink-4: #9a9384;
+	--ink-5: #b5ada0;
 	--card: rgba(255, 255, 255, 0.93);
+	--card-solid: #ffffff;
+	--hover: #f3efe6;
 	--accent: #e8590c;
+	--accent-soft: #fdece4;
+	--accent-strong: #d9480f;
 	--line: #ddd6c9;
 	--shadow: 0 4px 24px rgba(30, 25, 20, 0.18);
 	--radius: 14px;
+	--map-bg: #e8e4dc;
+	--chart-grid: #e6dfd2;
+	--chart-line: rgba(60, 55, 45, 0.5);
+	--chart-max: #5f48c2;
+	--leaflet-shade: rgba(255, 255, 255, 0.65);
+}
+
+/* 暗黑：同暖色调性整体压暗（米白纸感 → 深咖），橙色 accent 提亮一档保对比度 */
+.theme-dark {
+	--bg: #171410;
+	--ink: #ebe6db;
+	--ink-2: #a49c8e;
+	--ink-3: #c6beae;
+	--ink-4: #8a8375;
+	--ink-5: #6e675c;
+	--card: rgba(32, 29, 23, 0.93);
+	--card-solid: #2b2721;
+	--hover: #37332b;
+	--accent-soft: rgba(232, 89, 12, 0.22);
+	--accent-strong: #ff922b;
+	--line: #453f34;
+	--shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+	--map-bg: #14110d;
+	--chart-grid: #3b362c;
+	--chart-line: rgba(220, 214, 200, 0.45);
+	--chart-max: #b19df3;
+	--leaflet-shade: rgba(23, 20, 15, 0.65);
+}
+
+/* 复古：羊皮纸 / 老地图质感（accent 延续明亮主题的橙色，印章感） */
+.theme-vintage {
+	--bg: #e7dcc3;
+	--ink: #453723;
+	--ink-2: #8c7a58;
+	--ink-3: #6e5c3c;
+	--ink-4: #9c8b68;
+	--ink-5: #baa87f;
+	--card: rgba(248, 242, 227, 0.93);
+	--card-solid: #f6efdc;
+	--hover: #ece1c4;
+	--line: #d6c69d;
+	--shadow: 0 4px 24px rgba(78, 62, 34, 0.25);
+	--map-bg: #e2d5b4;
+	--chart-grid: #dccfa8;
+	--chart-line: rgba(110, 92, 60, 0.5);
+	--leaflet-shade: rgba(246, 239, 220, 0.65);
+}
+
+/* 青紫：冷调暗黑，界面与底图整体染蓝紫 */
+.theme-violet {
+	--bg: #131021;
+	--ink: #e7e3f7;
+	--ink-2: #9d97bd;
+	--ink-3: #c5c0e0;
+	--ink-4: #827ca6;
+	--ink-5: #635d86;
+	--card: rgba(27, 24, 42, 0.93);
+	--card-solid: #252138;
+	--hover: #312c4b;
+	--accent: #845ef7;
+	--accent-soft: rgba(132, 94, 247, 0.22);
+	--accent-strong: #b197fc;
+	--line: #3c3759;
+	--shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+	--map-bg: #100d1d;
+	--chart-grid: #312c4b;
+	--chart-line: rgba(216, 211, 240, 0.45);
+	--chart-max: #b197fc;
+	--leaflet-shade: rgba(16, 13, 29, 0.65);
 }
 
 * {
@@ -40,18 +116,18 @@ button {
 	align-items: center;
 	justify-content: center;
 	padding: 0;
-	background: rgba(255, 255, 255, 0.93);
+	background: var(--card);
 	backdrop-filter: blur(10px);
 	border: none;
 	border-radius: 10px;
-	box-shadow: 0 4px 24px rgba(30, 25, 20, 0.18);
+	box-shadow: var(--shadow);
 	color: var(--ink);
 	cursor: pointer;
 	text-decoration: none;
 }
 
 .icon-btn:hover {
-	background: #fff;
+	background: var(--card-solid);
 }
 
 .icon-btn:focus-visible {
@@ -96,4 +172,60 @@ button {
 
 .leaflet-tooltip.wp-label {
 	padding: 3px 8px;
+}
+
+/* ---- Leaflet 内置控件（缩放 / 比例尺 / 归属 / 弹窗）统一走主题变量，
+        各风格仅靠变量覆盖即生效，无需逐套写覆盖规则 ---- */
+.leaflet-container .leaflet-bar a {
+	background-color: var(--card-solid);
+	color: var(--ink);
+	border-bottom-color: var(--line);
+}
+
+.leaflet-container .leaflet-bar a:hover {
+	background-color: var(--hover);
+}
+
+.leaflet-container .leaflet-control-attribution {
+	background: var(--leaflet-shade);
+	color: var(--ink-2);
+}
+
+.leaflet-container .leaflet-control-attribution a {
+	color: var(--accent-strong);
+}
+
+.leaflet-container .leaflet-popup-content-wrapper,
+.leaflet-container .leaflet-popup-tip {
+	background: var(--card-solid);
+	color: var(--ink);
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+	color: var(--ink-4);
+}
+
+.leaflet-container .leaflet-control-scale-line {
+	background: var(--leaflet-shade);
+	border-color: var(--ink-5);
+	color: var(--ink-3);
+}
+
+/* ---- 底图风格滤镜：仅作用于街道/地形类矢量底图（MapView 中标记 tile-filterable），
+        卫星影像不参与（照片类瓦片反色/做旧会失真） ---- */
+
+/* 暗黑：反色 + 色相回旋（浅底变深底、色相基本保持） */
+.theme-dark .tile-filterable {
+	filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9) saturate(0.75);
+}
+
+/* 复古：整体做旧为棕黄羊皮纸质感 */
+.theme-vintage .tile-filterable {
+	filter: sepia(0.7) saturate(1.1) contrast(0.92) brightness(1.02);
+}
+
+/* 青紫：暗黑基础上叠棕再旋转色相，整图落在蓝紫调 */
+.theme-violet .tile-filterable {
+	filter: invert(1) hue-rotate(180deg) sepia(0.35) hue-rotate(190deg) saturate(0.7) brightness(0.88)
+		contrast(0.95);
 }
