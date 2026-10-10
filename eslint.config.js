@@ -38,7 +38,10 @@ export default defineConfig(
 		// 仅关噪音，正确性类规则（无限循环、响应式误用、重复指令等）全部保留。
 		rules: {
 			// 允许命令式 DOM 操作：图表/地图/动画组件独占管理自己的 DOM 子树（ssr = false）
-			'svelte/no-dom-manipulating': 'off'
+			'svelte/no-dom-manipulating': 'off',
+			// Svelte 5 常态误报：$bindable / 导出 $state / store 的「只写不读」是响应式
+			// write-through 正规写法（值由框架管道消费），规则读不懂该语义
+			'no-useless-assignment': 'off'
 		}
 	}
 );

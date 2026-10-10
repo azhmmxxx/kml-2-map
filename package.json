@@ -33,6 +33,8 @@
 		"vite": "^8.0.16"
 	},
 	"dependencies": {
+		"@lucide/svelte": "^1.37.0",
+		"gifenc": "^1.0.3",
 		"idb": "^8.0.3",
 		"leaflet": "^1.9.4"
 	}

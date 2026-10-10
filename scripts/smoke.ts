@@ -7,6 +7,8 @@ import { existsSync, readFileSync } from 'node:fs';
 import { parseKml } from '../src/lib/kml/parser.ts';
 import { prepareTrack } from '../src/lib/geo/prepare.ts';
 import { simplify } from '../src/lib/geo/simplify.ts';
+import { wgs84ToGcj02 } from '../src/lib/geo/gcj02.ts';
+import { haversine } from '../src/lib/geo/stats.ts';
 
 const file = process.argv[2] ?? 'poc/川西大环线.kml';
 if (!existsSync(file)) {
@@ -70,5 +72,13 @@ assert.ok(
 	Math.abs(parsed.stats.gainM - parsed.stats.lossM) / Math.max(parsed.stats.gainM, 1) < 0.35,
 	'爬升/下降严重失衡'
 );
+
+// ---- GCJ-02 前向纠偏（高德底图对齐用） ----
+const [gLng, gLat] = wgs84ToGcj02(104.06, 30.67); // 成都
+const offM = haversine(30.67, 104.06, gLat, gLng);
+console.log(`gcj02: 成都偏移 ${offM.toFixed(0)}m`);
+assert.ok(offM > 50 && offM < 800, `GCJ 偏移量异常: ${offM.toFixed(0)}m`);
+const [oLng, oLat] = wgs84ToGcj02(-0.1276, 51.5072); // 伦敦（境外应恒等）
+assert.ok(oLng === -0.1276 && oLat === 51.5072, '境外坐标应恒等变换');
 
 console.log('\n✅ 全部断言通过');
