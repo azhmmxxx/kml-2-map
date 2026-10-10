@@ -1,0 +1,57 @@
+# 临时发布：master 推送即部署到 GitHub Pages 项目站（https://azhmmxxx.github.io/kml-2-map/）
+# 前置一次性设置：仓库 Settings → Pages → Build and deployment → Source 选 GitHub Actions
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 版本取 package.json 的 packageManager 字段（corepack 装对应 pnpm）
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm build
+        env:
+          # 项目站挂在子路径下，构建产物需带 /kml-2-map 前缀
+          PUBLIC_BASE_PATH: /kml-2-map
+
+      # GH Pages 无服务端重写：未命中路径回 404.html——内容即 SPA 入口，
+      # 浏览器加载后由客户端路由接管（深链 /map/xxx 直开可用）
+      - run: cp build/index.html build/404.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
